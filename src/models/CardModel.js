@@ -1,13 +1,14 @@
 import Joi from "joi"
+import { ObjectId } from "mongodb"
 import {getDB} from "../config/configdb.js"
 
 
 
-const cardcollecttionName = 'trello'
+const cardcollecttionName = 'cards'
 const cardcollecttionSchema = Joi.object({
     boardId: Joi.string().required(),
     columnId: Joi.string().required(),
-    title: Joi.string().required().min(3).max(20),
+    title: Joi.string().required().min(3).max(40).trim(),
     cover: Joi.string().default(null),
     createAt: Joi.date().timestamp().default(Date.now()),
     updateAt: Joi.date().timestamp().default(null),
@@ -20,8 +21,14 @@ const validateSchema = async (data) =>{
 
 const createNew = async (data) =>{
     try {
-        const value = await validateSchema(data)
-        const result = await getDB().collection('cards').insertOne(value)
+        const validatevalue = await validateSchema(data)
+        const insertValue = {
+            ...validatevalue,
+            boardId: ObjectId(validatevalue.boardId),
+            columnId: ObjectId(validatevalue.columnId)
+
+        }
+        const result = await getDB().collection(cardcollecttionName).insertOne(insertValue)
          return result.insertedId
      
     } catch (error) {

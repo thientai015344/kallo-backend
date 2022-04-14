@@ -1,9 +1,10 @@
 import Joi from "joi"
+import { ObjectId } from "mongodb"
 import {getDB} from "../config/configdb.js"
 
 
 
-const columncollecttionName = 'trello'
+const columncollecttionName = 'columns'
 const columncollecttionSchema = Joi.object({
     boardId: Joi.string().required(),
     title: Joi.string().required().min(3).max(20),
@@ -19,13 +20,32 @@ const validateSchema = async (data) =>{
 
 const createNew = async (data) =>{
     try {
-        const value = await validateSchema(data)
-        const result = await getDB().collection('columns').insertOne(value)
-         return result.insertedId
+        const validatevalue = await validateSchema(data)
+        const insertValue = {
+            ...validatevalue,
+            boardId: ObjectId(validatevalue.boardId)
+        }
+        const result = await getDB().collection(columncollecttionName).insertOne(insertValue)
+         return result
      
     } catch (error) {
         console.log(error)
     }
 }
 
-export const ColumnModell = {createNew}
+const update = async (data) =>{
+    try {
+     
+        const result = await getDB().collection(columncollecttionName).findOneAndUpdate(
+          {_id: ObjectId(id)} ,
+          {$set: data},
+          {returnOriginal: false}
+        )
+         return result.value
+     
+    } catch (error) {
+        console.Error(error)
+    }
+}
+
+export const ColumnModell = {createNew, update}
